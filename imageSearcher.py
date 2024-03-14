@@ -3,9 +3,6 @@ import tkinter as tk
 import json
 import utilFunctions
 
-#lazy bandaid solution just for proof of concept
-
-    
 
 class mainWindow():
     def __init__(self):
@@ -41,43 +38,45 @@ class mainWindow():
     #creating search button
     def getSearch(self):
         #getting keywords from search bar
-        keyWords = self.search.get()
+        keyWords = self.search.get().lower()
         keyWords = keyWords.split()
 
-        #array which will store all images that have any of the listed keywords
-        unfilteredResults = []
+        #map which tracks how many of the listed keywords an image has
+        unfilteredResults = {}
         for i in range(len(keyWords)):
             #checking that keyword is searchable
             if keyWords[i] in self.toDict:
-                print("happen")
                 #adding all relevant images to array
                 for im in self.toDict[keyWords[i]]:
-                    unfilteredResults.append(im)
+                    if im not in unfilteredResults:
+                        unfilteredResults[im] = 1
+                    else:
+                        unfilteredResults[im] += 1
             else:
                 #if a given keyword does not exist create a basic error window and stop the function     
-                errorWindow(keyWords[i])
+                errorWindow("No image with keyword: " + keyWords[i])
                 return
         
-        #set which stores the images whichs contain every keyword
+        #list which stores the images whichs contain every keyword
         filteredResults = []
-        for i in range(len(unfilteredResults)):
-            #may need to optimize how this works when json file gets beeeeeeg
-            if(unfilteredResults[i] not in filteredResults and unfilteredResults.count(unfilteredResults[i]) == len(keyWords)):
-                filteredResults.append(unfilteredResults[i])
+        for result in unfilteredResults.keys():
+            if(unfilteredResults[result] == len(keyWords)):
+                filteredResults.append(result)
 
-        #opening search window to display results
-        print("happen")
-        print(filteredResults)            
+        #opening search window to display results 
         if(len(filteredResults) != 0):
             searchWindow(filteredResults)
+        else:
+            errorWindow("no Image with all listed keywords")
 
 
+#very basic class to tell user something has gone wrong
 class errorWindow():
     def __init__(self, kw):
         err = tk.Toplevel()
         err.title("error")
         err.geometry("400x200")
-        s = "Unable to find image with word: " + str(kw)
+        s = "Error: " + str(kw)
         explanation = tk.Label(err, text=s)
         explanation.pack()
         err.mainloop()
@@ -96,8 +95,9 @@ class searchWindow():
         self.img = ImageTk.PhotoImage(Image.open(filteredResults[self.index]))
         self.display = tk.Label(res, image = self.img)
         self.display.pack()
+        
         #gui element to tell us index of image
-        s = "Showing image: " + str(self.index+1) + "/" + str(len(filteredResults))
+        s = "Showing image: " + str(self.index+1) + "/" + str(len(filteredResults)), "(" + filteredResults[self.index] + ")"
         self.totalIM = tk.Label(res, text=s)
         self.totalIM.pack(side=tk.BOTTOM)
         
@@ -115,14 +115,21 @@ class searchWindow():
 
     #controls for sorting thru images    
     def prevImage(self):
+        #safeguards against moving out of bounds
         if self.index*-1 == len(self.filteredResults) -1:
             self.index = 0
         else:
             self.index -= 1
             
+        #opening image and updating our label
         self.img = ImageTk.PhotoImage(Image.open(self.filteredResults[self.index]))
         self.display.config(image=self.img)
-        s = "Showing image: " + str(self.index+1) + "/" + str(len(self.filteredResults))
+        #determing which index to display to user
+        displayIndex = self.index
+        if displayIndex < 0:
+            displayIndex = len(self.filteredResults) + displayIndex
+        #giving user information about the search results
+        s = "Showing image: " + str(displayIndex+1) + "/" + str(len(self.filteredResults)), "(" + self.filteredResults[self.index] + ")"
         self.totalIM.config(text=s)
 
     def nextImage(self):
@@ -133,7 +140,10 @@ class searchWindow():
 
         self.img = ImageTk.PhotoImage(Image.open(self.filteredResults[self.index]))
         self.display.config(image=self.img)
-        s = "Showing image: " + str(self.index+1) + "/" + str(len(self.filteredResults))
+        displayIndex = self.index
+        if displayIndex < 0:
+            displayIndex = len(self.filteredResults) + displayIndex
+        s = "Showing image: " + str(displayIndex+1) + "/" + str(len(self.filteredResults)), "(" + self.filteredResults[self.index] + ")"
         self.totalIM.config(text=s)
 
 

@@ -1,8 +1,8 @@
 **SETUP:**
 1) Create a folder that will contain all of the python files and necessary sub folders
 2) Place the three python scripts all in this folder
-3) Within this folder create three more sub folders named "images_to_process", "failed_processed_images", and "processed_images"
-4) You may neeed to install tesseract/py tersseract, https://pypi.org/project/wrapt-timeout-decorator/, and python itself if these are not already on your machine
+3) Within this folder create four more sub folders named "images_to_process", "failed_processed_images", "processed_images", and "image_notes"
+4) You may neeed to install tesseract/pytersseract, https://pypi.org/project/wrapt-timeout-decorator/, and python itself if these are not already on your machine
 
 **ADDING IMAGES TO SEARCH ENGINE:**
 1) Move all images you wish to search by into the "images_to_process" folder

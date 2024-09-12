@@ -31,10 +31,18 @@ class mainWindow():
 
         #creating search button
         searchBtn = tk.Button(root, text = "search" , command=self.getSearch)
+        #allowing user to search via a key command
+        root.bind("<Return>", self.commandSearch)
         searchBtn.pack()
 
         root.mainloop()
     
+    #for whatever reason the binded version of the command passes in two arguments
+    #we simply ignore the second argument and call the actual function with the
+    #right number of arguments
+    def commandSearch(self, a):
+        self.getSearch()
+
     #creating search button
     def getSearch(self):
         #getting keywords from search bar
@@ -82,8 +90,8 @@ class errorWindow():
 
 class searchWindow():
     def __init__(self, filteredResults):
-        res = tk.Toplevel()
-        res.title("Results of search")
+        self.root = tk.Toplevel()
+        self.root.title("Results of search")
     
         #for keeping track of which image we are looking at
         self.index = 0
@@ -91,38 +99,42 @@ class searchWindow():
         #important for button functions
         self.filteredResults = filteredResults
 
-        #ui element for displaying the image and a global variable to track the image 
+        #ui element for displaying the image
+        self.display = tk.Label(self.root)
+        #global variable to track the image
         self.img = None
-        self.display = tk.Label(res)
-        self.display.pack()
+        self.display.grid(row=1, column=1)
         
         #gui element to tell us index of image
-        self.totalIM = tk.Label(res)
-        self.totalIM.pack(side=tk.BOTTOM)
-    
+        self.totalIM = tk.Label(self.root)
+        self.totalIM.grid(row=0, column=1)
+
         #button to save notes
-        saveNotesBtn = tk.Button(res, text = "save notes", command=self.saveNotes)
-        saveNotesBtn.pack(side=tk.BOTTOM)
+        saveNotesBtn = tk.Button(self.root, text = "save notes", command=self.saveNotes)
+        saveNotesBtn.grid(row=3, column=1)
 
         #text widget for taking notes on current image
-        self.notesWindow = tk.Text(res)
-        self.notesWindow.pack(side=tk.BOTTOM)
+        self.notesWindow = tk.Text(self.root)
+        self.notesWindow.grid(row=4, column=1)
 
         #if we have more than one search result add buttons for navigating between them
         if(len(self.filteredResults) > 1):
-            fwdBtn = tk.Button(res, text = "next image", command=self.nextImage)
-            fwdBtn.pack(side=tk.RIGHT)
+            fwdBtn = tk.Button(self.root, text = "next image", command=self.nextImage)
+            fwdBtn.grid(row=1, column=2)
 
-            backBtn = tk.Button(res, text = "previous image", command=self.prevImage)
-            backBtn.pack(side=tk.LEFT)
+            backBtn = tk.Button(self.root, text = "previous image", command=self.prevImage)
+            backBtn.grid(row=1, column=0)
 
         #filling in all our ui elements with data
         self.updateDisplay()
 
-        res.mainloop()
+        self.root.mainloop()
 
     #controls for sorting thru images, just updates current index then calls update display function    
     def prevImage(self):
+        #saving notes before switching images
+        self.saveNotes()
+
         #safeguards against moving out of bounds
         if self.index*-1 == len(self.filteredResults) -1:
             self.index = 0
@@ -132,6 +144,9 @@ class searchWindow():
         self.updateDisplay()
 
     def nextImage(self):
+        #saving notes before switching images
+        self.saveNotes()
+        
         #safeguards against moving out of bounds
         if self.index == len(self.filteredResults) - 1:
             self.index = 0
@@ -165,8 +180,10 @@ class searchWindow():
         unsizedImage = Image.open(self.filteredResults[self.index])
         
         #halving size of image if its too big
-        if(unsizedImage.width > 1000):
-            unsizedImage = unsizedImage.resize((int(unsizedImage.width/2), int(unsizedImage.height/2)))
+        if(unsizedImage.width > self.root.winfo_screenwidth() * .60 or unsizedImage.height > self.root.winfo_screenheight() * .60):
+            widthReduction = unsizedImage.width - self.root.winfo_screenwidth() * .60
+            heightReduction = unsizedImage.height - self.root.winfo_screenheight() * .60
+            unsizedImage = unsizedImage.resize((int(unsizedImage.width - widthReduction), int(unsizedImage.height - heightReduction)))
         
         #displaying image
         self.img = ImageTk.PhotoImage(unsizedImage)

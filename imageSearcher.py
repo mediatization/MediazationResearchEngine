@@ -161,8 +161,9 @@ class searchWindow():
         file = open("./image_notes/" + self.filteredResults[self.index][17:-4] + ".txt", "w")
         file.write(self.notesWindow.get("1.0", "end"))
         file.close()
+        return
 
-    #updates all elements of our display each time we
+    #updates all elements of our display each time we move images
     def updateDisplay(self):
         #updating the image
         self.updateImage()
@@ -179,11 +180,15 @@ class searchWindow():
         #opening image
         unsizedImage = Image.open(self.filteredResults[self.index])
         
-        #halving size of image if its too big
-        if(unsizedImage.width > self.root.winfo_screenwidth() * .60 or unsizedImage.height > self.root.winfo_screenheight() * .60):
-            widthReduction = unsizedImage.width - self.root.winfo_screenwidth() * .60
-            heightReduction = unsizedImage.height - self.root.winfo_screenheight() * .60
-            unsizedImage = unsizedImage.resize((int(unsizedImage.width - widthReduction), int(unsizedImage.height - heightReduction)))
+        if(unsizedImage.width > 800):
+            diff = unsizedImage.width - 800
+            decrease = (unsizedImage.width - diff) / unsizedImage.width
+            unsizedImage = unsizedImage.resize((int(unsizedImage.width * decrease), int(unsizedImage.height * decrease)))
+
+        if(unsizedImage.height > 800):
+            diff = unsizedImage.height - 800
+            decrease = (unsizedImage.height - diff) / unsizedImage.height
+            unsizedImage = unsizedImage.resize((int(unsizedImage.width * decrease), int(unsizedImage.height * decrease)))
         
         #displaying image
         self.img = ImageTk.PhotoImage(unsizedImage)
